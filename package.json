@@ -1,5 +1,5 @@
 {
-  "name": "verdaccio-cli",
+  "name": "verdaccio-cli-rd",
   "version": "1.0.0",
   "description": "",
   "main": "bin/index.js",

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "bin/index.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "tsc --watch",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts",
@@ -24,6 +24,8 @@
       "json",
       "node"
     ],
+    "preset": "ts-jest",
+    "testEnvironment": "node",
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     }
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.11",
     "@types/node": "^20.11.10",
+    "@types/semver": "^7.5.6",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
     "add": "^2.0.6",
@@ -55,9 +58,14 @@
     "prettier": "^3.2.4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@clack/prompts": "^0.7.0"
+    "@clack/prompts": "^0.7.0",
+    "@inquirer/checkbox": "^1.5.2",
+    "@types/inquirer": "^9.0.7",
+    "inquirer": "^9.2.13",
+    "semver": "^7.5.4"
   }
 }

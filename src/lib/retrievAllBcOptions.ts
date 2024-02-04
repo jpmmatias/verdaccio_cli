@@ -22,9 +22,9 @@ const transformString = (inputString: string): string => {
   }
 }
 
-export const retrieveAllBcOptions = (): Promise<
-  { value: string; name: string }[]
-> => {
+export const retrieveAllBcOptions = (
+  search: string | null,
+): Promise<{ value: string; name: string }[]> => {
   return new Promise((resolve, reject) => {
     exec(cliCommand, (error, stdout, stderr) => {
       if (error) {
@@ -43,11 +43,15 @@ export const retrieveAllBcOptions = (): Promise<
 
       const isValidOption = (option: string) => option.startsWith('@rd-bc')
 
-      const optionsArr = stdout
+      let optionsArr = stdout
         .split('\n')
         .map(option => option.replace('➤ YN0000:', ''))
         .map(option => transformString(option.trim()))
         .filter(option => isValidOption(option))
+
+      if (search) {
+        optionsArr = optionsArr.filter(item => item.includes(search))
+      }
 
       const mappedOptions = optionsArr.map(option => ({
         value: option,

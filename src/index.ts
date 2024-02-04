@@ -18,6 +18,11 @@ import checkbox, { Separator } from '@inquirer/checkbox'
 
 export async function main() {
   intro(`RD - Verdaccio CLI`)
+  const args = process.argv[2]?.split('=')
+  const filter =
+    (args && args[0] === '--filter') || (args && args[0] === '--f')
+      ? args[1]
+      : null
 
   const option = await select({
     message: 'O que deseja fazer?',
@@ -28,7 +33,7 @@ export async function main() {
     ],
   })
 
-  const options = await retrieveAllBcOptions()
+  const options = await retrieveAllBcOptions(filter)
 
   if (!options) throw Error('Nao esta no ambiente com workspaces ')
 

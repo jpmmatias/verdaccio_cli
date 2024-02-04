@@ -5,12 +5,6 @@ import { exec } from 'child_process'
 
 const cliCommand = 'yarn workspaces list'
 
-type Option = {
-  value: unknown
-  label: string
-  hint?: string | undefined
-}
-
 const transformString = (inputString: string): string => {
   const regexMobile = /modules\/([^\/]+)\/mobile\/impl/
   const regexBusinessImpl = /modules\/([^\/]+)\/business\/impl/
@@ -28,7 +22,9 @@ const transformString = (inputString: string): string => {
   }
 }
 
-export const retrieveAllBcOptions = (): Promise<Option[]> => {
+export const retrieveAllBcOptions = (): Promise<
+  { value: string; name: string }[]
+> => {
   return new Promise((resolve, reject) => {
     exec(cliCommand, (error, stdout, stderr) => {
       if (error) {
@@ -41,7 +37,6 @@ export const retrieveAllBcOptions = (): Promise<Option[]> => {
 
       if (stderr) {
         console.error(`Error: ${stderr}`)
-        console.log('aqui 2')
         reject(stderr)
         return
       }
@@ -56,7 +51,7 @@ export const retrieveAllBcOptions = (): Promise<Option[]> => {
 
       const mappedOptions = optionsArr.map(option => ({
         value: option,
-        label: option,
+        name: option,
       }))
 
       resolve(mappedOptions)

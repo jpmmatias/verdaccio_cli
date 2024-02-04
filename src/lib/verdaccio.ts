@@ -1,33 +1,57 @@
 #!/usr/bin/env node
 
 import { log } from '@clack/prompts'
-import { exec } from 'child_process'
+import { spawn, execSync } from 'child_process'
 import { exit } from 'process'
 
-const cliCommand = 'pnpm install -g verdaccio && verdaccio'
+const cliCommand = 'verdaccio'
 
-export const openVerdaccio = async () => {
-  log.info('Conectando com Verdaccio..')
+let verdaccioProcess
 
-  exec(cliCommand, (error, stdout, stderr) => {
-    if (error) {
-      log.error(`Error: ${error.message}`)
-      exit()
+export const installVerdaccio = async () => {
+  try {
+    execSync('which verdaccio')
+
+    log.success('Verdaccio instalado!')
+  } catch (error) {
+    log.info('Verdaccio não encontrado. Instalando...')
+
+    try {
+      execSync('pnpm install -g verdaccio')
+
+      log.success('Verdaccio instalado com sucesso.')
+    } catch (installError) {
+      log.error(`Erro ao instalar Verdaccio: ${installError.message}`)
     }
-
-    if (stderr) {
-      log.error(`Error: ${stderr}`)
-      exit()
-    }
-
-    log.success('Conectado!')
-
-    return true
-  })
-  log.info('Conectando com Verdaccio!')
+  }
 }
 
-export const disconnectFromVerdaccio = async () => {
-  exec('sudo kill $(sudo lsof -t -i:4873')
-  log.info('Conectando com Verdaccio!')
+export const openVerdaccio = async () => {
+  log.info('Conectando com  Verdaccio...')
+
+  verdaccioProcess = spawn(cliCommand)
+
+  verdaccioProcess.on('error', error => {
+    log.error(`Error: ${error.message}`)
+    exit()
+  })
+
+  verdaccioProcess.on('close', code => {
+    if (code !== 0) {
+      log.error(`Processo do Verdaccio foi terminado com codigo ${code}`)
+      exit()
+    }
+    log.success('Conectado!')
+  })
+}
+
+export const disconnectFromVerdaccio = () => {
+  if (verdaccioProcess) {
+    log.info('Disconnecting from Verdaccio...')
+    verdaccioProcess.kill()
+    verdaccioProcess = null
+    log.success('Disconnected!')
+  } else {
+    log.warn('Verdaccio process not found. Already disconnected?')
+  }
 }

@@ -4,6 +4,9 @@
   "description": "",
   "main": "bin/index.js",
   "type": "commonjs",
+  "publishConfig": {
+    "access": "restricted"
+  },
   "scripts": {
     "dev": "tsc --watch",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts",

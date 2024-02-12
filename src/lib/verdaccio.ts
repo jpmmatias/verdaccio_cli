@@ -47,11 +47,11 @@ export const openVerdaccio = async () => {
 
 export const disconnectFromVerdaccio = () => {
   if (verdaccioProcess) {
-    log.info('Disconnecting from Verdaccio...')
+    log.info('Disconectando do Verdaccio...')
     verdaccioProcess.kill()
     verdaccioProcess = null
-    log.success('Disconnected!')
+    log.success('Disconectado!')
   } else {
-    log.warn('Verdaccio process not found. Already disconnected?')
+    log.warn('Verdaccio não foi achado')
   }
 }

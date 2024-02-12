@@ -1,57 +1,58 @@
-import { execSync } from 'child_process'
+import { execSync as childProcessExecSync } from 'child_process'
 import { log } from '@clack/prompts'
 import { accessSync, constants } from 'fs'
 import { NODE_VERSION_REQUIRED } from './constants'
 import semver from 'semver'
 
-export const checkNodeVersion = () => {
+export const checkNodeVersion = (
+  node_version = NODE_VERSION_REQUIRED,
+  execSync = childProcessExecSync,
+  logger = log,
+) => {
   const nodeVersion = process.version.slice(1)
 
-  if (!semver.satisfies(nodeVersion, NODE_VERSION_REQUIRED)) {
-    log.error(
-      `Verão do Node ${NODE_VERSION_REQUIRED} é requerida. Versão atual é ${nodeVersion}`,
+  if (semver.satisfies(nodeVersion, node_version)) return true
+
+  logger.error(
+    `Verão do Node ${node_version} é requerida. Versão atual é ${nodeVersion}`,
+  )
+
+  try {
+    execSync('nvm --version', { stdio: 'ignore' })
+
+    logger.info(
+      'NVM encontrado. Tentando trocar pra versão de node requerida...',
     )
+
     try {
-      execSync('nvm --version', { stdio: 'ignore' })
-
-      log.info(
-        'NVM encontrado. Tentando trocar pra versão de node requerida...',
-      )
-
-      try {
-        execSync(
-          `nvm install ${NODE_VERSION_REQUIRED} && nvm use ${NODE_VERSION_REQUIRED}`,
-        )
-        log.success(
-          `Trocado para versão ${NODE_VERSION_REQUIRED} do Node com sucesso!`,
-        )
-      } catch (nvmError) {
-        log.error(`Erro ao trocar versão do Node.js: ${nvmError.message}`)
-        process.exit(1)
-      }
-    } catch (nvmNotFound) {
-      log.error(
-        `Nvm não enconstrado. Por favor instale nvm e use a versão do node ${NODE_VERSION_REQUIRED}`,
-      )
+      execSync(`nvm install ${node_version} && nvm use ${node_version}`)
+      logger.success(`Trocado para versão ${node_version} do Node com sucesso!`)
+    } catch (nvmError) {
+      logger.error(`Erro ao trocar versão do Node.js: ${nvmError.message}`)
       process.exit(1)
     }
+  } catch (nvmNotFound) {
+    logger.error(
+      `Nvm não enconstrado. Por favor instale nvm e use a versão do node ${node_version}`,
+    )
   }
 }
 
-export const checkAndInstallPackages = async () => {
+export const checkAndInstallPackages = (
+  checkAccessSync = accessSync,
+  executeSync = childProcessExecSync,
+  logger = log,
+) => {
   try {
-    accessSync('node_modules', constants.R_OK)
-
-    log.success('node_modules existe')
+    checkAccessSync('node_modules', constants.R_OK)
+    logger.success('node_modules existe')
   } catch (error) {
-    log.info('node_modules não encontrado. Instalando...')
-
+    logger.info('node_modules não encontrado. Instalando...')
     try {
-      execSync('yarn')
-
-      log.success('node_modules instalado com sucesso.')
+      executeSync('yarn')
+      logger.success('node_modules instalado com sucesso.')
     } catch (installError) {
-      log.error(`Erro instalando node_modules: ${installError.message}`)
+      logger.error(`Erro instalando node_modules: ${installError.message}`)
     }
   }
 }

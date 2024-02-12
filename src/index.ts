@@ -1,73 +1,36 @@
 #!/usr/bin/env node
 
-import { intro, log, select } from '@clack/prompts'
-import { exit } from 'process'
-import {
-  createAndPublishPackages,
-  deletePackages,
-  updatePackages,
-} from './lib/packages'
-import { retrieveAllBcOptions } from './lib/retrievAllBcOptions'
-import { checkAndInstallPackages, checkNodeVersion } from './lib/enviorement'
-import {
-  disconnectFromVerdaccio,
-  installVerdaccio,
-  openVerdaccio,
-} from './lib/verdaccio'
-import checkbox, { Separator } from '@inquirer/checkbox'
+import { Command } from 'commander'
+import { main } from './main'
 
-export async function main() {
-  intro(`RD - Verdaccio CLI`)
-  const args = process.argv[2]?.split('=')
-  const filter =
-    (args && args[0] === '--filter') || (args && args[0] === '--f')
-      ? args[1]
-      : null
+const program = new Command()
 
-  const option = await select({
-    message: 'O que deseja fazer?',
-    options: [
-      { value: 'update', label: "Update de BC's" },
-      { value: 'create', label: "Criar BC's" },
-      { value: 'delete', label: "Deletar BC's" },
-    ],
-  })
+const args = program.opts()
 
-  const options = await retrieveAllBcOptions(filter)
+program
+  .name('verdaccio-cli')
+  .description('CLI para ajudar na integração do monorepo com o App legado')
+  .version('0.0.1')
+  .action(() => main({ args }))
 
-  if (!options) throw Error('Nao esta no ambiente com workspaces ')
+program
+  .option('-f,--filter <search>', 'filtra as BCs existentes')
+  .option('-bc <bcs...>', 'Nome do pacote que queira fazer o update')
+  .option('-bcs <bcs...>', 'Nome do pacote que queira fazer o update')
 
-  const bcs = await checkbox({
-    message: 'Selecione as packages',
-    choices: options,
-    required: true,
-  })
+program
+  .command('update')
+  .description('Faça o update do pacote e faça o upload no Verdaccio')
+  .action(() => main({ command: 'update', args }))
 
-  try {
-    checkNodeVersion()
-    await checkAndInstallPackages()
-    await installVerdaccio()
-    await openVerdaccio()
-    switch (option) {
-      case 'create':
-        await createAndPublishPackages(bcs)
-        break
-      case 'delete':
-        await deletePackages(bcs)
-        break
+program
+  .command('create')
+  .description('Cria BCs e faz o upload no verdaccio')
+  .action(() => main({ command: 'create', args }))
 
-      default:
-        await updatePackages(bcs)
-        break
-    }
-    exit()
-  } catch (error) {
-    console.log(error)
-    log.error(`Erro ao atualizar pacotes`)
-    exit(1)
-  } finally {
-    disconnectFromVerdaccio()
-  }
-}
+program
+  .command('delete')
+  .description('Deleta BCs da Verdaccio')
+  .action(() => main({ command: 'delete', args }))
 
-main()
+program.parse()

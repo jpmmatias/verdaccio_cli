@@ -68,8 +68,10 @@
     "@clack/prompts": "^0.7.0",
     "@inquirer/checkbox": "^1.5.2",
     "@types/inquirer": "^9.0.7",
+    "@types/puppeteer": "^7.0.4",
     "commander": "^12.0.0",
     "inquirer": "^9.2.13",
+    "puppeteer": "^22.0.0",
     "semver": "^7.5.4"
   }
 }

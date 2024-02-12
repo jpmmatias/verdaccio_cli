@@ -42,13 +42,13 @@ const openVerdaccio = async () => {
 exports.openVerdaccio = openVerdaccio;
 const disconnectFromVerdaccio = () => {
     if (verdaccioProcess) {
-        prompts_1.log.info('Disconnecting from Verdaccio...');
+        prompts_1.log.info('Disconectando do Verdaccio...');
         verdaccioProcess.kill();
         verdaccioProcess = null;
-        prompts_1.log.success('Disconnected!');
+        prompts_1.log.success('Disconectado!');
     }
     else {
-        prompts_1.log.warn('Verdaccio process not found. Already disconnected?');
+        prompts_1.log.warn('Verdaccio não foi achado');
     }
 };
 exports.disconnectFromVerdaccio = disconnectFromVerdaccio;

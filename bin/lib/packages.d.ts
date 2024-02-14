@@ -4,3 +4,7 @@ export declare const publishPackages: (bcs: any) => Promise<boolean>;
 export declare const deletePackages: (bcs: any) => Promise<boolean>;
 export declare const createAndPublishPackages: (bcs: any) => Promise<boolean>;
 export declare const updatePackages: (bcs: any) => Promise<boolean>;
+export declare const fetchPackagesFromVerdaccio: () => Promise<{
+    option: string;
+    value: string;
+}[]>;

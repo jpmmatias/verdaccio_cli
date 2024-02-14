@@ -26,5 +26,9 @@ program
     .command('delete')
     .description('Deleta BCs da Verdaccio')
     .action(() => (0, main_1.main)({ command: 'delete', args }));
+program
+    .command('legacyAdd')
+    .description('Adicione BCs no legado')
+    .action(() => (0, main_1.main)({ command: 'addLegacy', args }));
 program.parse();
 //# sourceMappingURL=index.js.map

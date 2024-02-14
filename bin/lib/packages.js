@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePackages = exports.createAndPublishPackages = exports.deletePackages = exports.publishPackages = exports.createPackages = void 0;
+exports.fetchPackagesFromVerdaccio = exports.updatePackages = exports.createAndPublishPackages = exports.deletePackages = exports.publishPackages = exports.createPackages = void 0;
 const utils_1 = require("./utils");
 const prompts_1 = require("@clack/prompts");
+const puppeteer_1 = __importDefault(require("puppeteer"));
 const createPackages = async (bcs) => {
     try {
         prompts_1.log.message('Gerando pacotes...');
@@ -74,4 +78,23 @@ const updatePackages = async (bcs) => {
     }
 };
 exports.updatePackages = updatePackages;
+const fetchPackagesFromVerdaccio = async () => {
+    const browser = await puppeteer_1.default.launch();
+    const page = await browser.newPage();
+    const registryUrl = 'http://localhost:4873';
+    await page.goto(registryUrl);
+    await page.setViewport({ width: 1080, height: 20024 });
+    await page.waitForSelector('div.container.content');
+    const packages = await page.evaluate(() => {
+        const packageNodes = document.querySelectorAll('.package-title');
+        const packageList = [];
+        packageNodes.forEach(node => {
+            packageList.push({ option: node.innerHTML, value: node.innerHTML });
+        });
+        return packageList;
+    });
+    await browser.close();
+    return packages;
+};
+exports.fetchPackagesFromVerdaccio = fetchPackagesFromVerdaccio;
 //# sourceMappingURL=packages.js.map

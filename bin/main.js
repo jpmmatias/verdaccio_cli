@@ -9,8 +9,34 @@ const process_1 = require("process");
 const packages_1 = require("./lib/packages");
 const retrievAllBcOptions_1 = require("./lib/retrievAllBcOptions");
 const enviorement_1 = require("./lib/enviorement");
+const files_1 = require("./lib/files");
 const verdaccio_1 = require("./lib/verdaccio");
 const checkbox_1 = __importDefault(require("@inquirer/checkbox"));
+const legacyAdd = async () => {
+    await (0, verdaccio_1.installVerdaccio)();
+    const open = await (0, verdaccio_1.openVerdaccio)();
+    if (!open)
+        return;
+    const options = await (0, packages_1.fetchPackagesFromVerdaccio)();
+    if (!options || options.length < 0)
+        throw Error('Não possuie pacotes disponiveis no Verdaccio');
+    if (!options)
+        return;
+    const bcs = await (0, checkbox_1.default)({
+        message: 'Selecione as packages',
+        choices: options,
+        required: true,
+    });
+    await (0, files_1.changeCode)({
+        filePath: '.npmrc',
+        modification: '\nregistry=http://localhost:4873/',
+        replaceRegex: /([^#]\s*)# registry=http:\/\/localhost:4873\//,
+    });
+    await (0, files_1.changeBcsInLegacyFiles)(bcs);
+    console.log({ bcs });
+    bcs.forEach(bc => (0, files_1.removePackageFromYarnLock)(bc));
+    (0, verdaccio_1.disconnectFromVerdaccio)();
+};
 async function main({ command, args }) {
     let option;
     (0, prompts_1.intro)(`RD - Verdaccio CLI`);
@@ -21,12 +47,19 @@ async function main({ command, args }) {
                 { value: 'update', label: "Update de BC's" },
                 { value: 'create', label: "Criar BC's" },
                 { value: 'delete', label: "Deletar BC's" },
+                { value: 'addLegacy', label: 'Adicionar BC no legado' },
             ],
         }));
     }
+    if (!option) {
+        option = command;
+    }
     const filter = args.f || args.filter;
     let bcs = args.Bc || args.Bcs;
-    option = command;
+    if (option === 'addLegacy') {
+        legacyAdd();
+        return;
+    }
     const options = await (0, retrievAllBcOptions_1.retrieveAllBcOptions)(filter);
     if (!options)
         throw Error('Nao esta no ambiente com workspaces ');

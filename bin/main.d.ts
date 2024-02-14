@@ -1,5 +1,5 @@
 interface CommandOption {
-    command?: 'create' | 'update' | 'delete';
+    command?: 'create' | 'update' | 'delete' | 'addLegacy';
     args: {
         Bc?: string[];
         Bcs?: string[];

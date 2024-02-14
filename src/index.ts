@@ -32,5 +32,9 @@ program
   .command('delete')
   .description('Deleta BCs da Verdaccio')
   .action(() => main({ command: 'delete', args }))
+program
+  .command('legacyAdd')
+  .description('Adicione BCs no legado')
+  .action(() => main({ command: 'addLegacy', args }))
 
 program.parse()

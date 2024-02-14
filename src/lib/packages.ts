@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { runCommand } from './utils'
 import { log } from '@clack/prompts'
+import puppeteer from 'puppeteer'
 
 export const createPackages = async bcs => {
   try {
@@ -68,4 +69,30 @@ export const updatePackages = async bcs => {
     log.error(error)
     return false
   }
+}
+
+export const fetchPackagesFromVerdaccio = async () => {
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+
+  const registryUrl = 'http://localhost:4873'
+  await page.goto(registryUrl)
+  await page.setViewport({ width: 1080, height: 20024 })
+
+  await page.waitForSelector('div.container.content')
+
+  const packages = await page.evaluate(() => {
+    const packageNodes = document.querySelectorAll('.package-title')
+    const packageList = [] as { option: string; value: string }[]
+
+    packageNodes.forEach(node => {
+      packageList.push({ option: node.innerHTML, value: node.innerHTML })
+    })
+
+    return packageList
+  })
+
+  await browser.close()
+
+  return packages
 }

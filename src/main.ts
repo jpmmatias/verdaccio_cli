@@ -4,9 +4,16 @@ import {
   createAndPublishPackages,
   deletePackages,
   updatePackages,
+  fetchPackagesFromVerdaccio,
 } from './lib/packages'
 import { retrieveAllBcOptions } from './lib/retrievAllBcOptions'
 import { checkAndInstallPackages, checkNodeVersion } from './lib/enviorement'
+import {
+  changeBcsInLegacyFiles,
+  changeCode,
+  readFile,
+  removePackageFromYarnLock,
+} from './lib/files'
 import {
   disconnectFromVerdaccio,
   installVerdaccio,
@@ -15,7 +22,7 @@ import {
 import checkbox from '@inquirer/checkbox'
 
 interface CommandOption {
-  command?: 'create' | 'update' | 'delete'
+  command?: 'create' | 'update' | 'delete' | 'addLegacy'
   args: {
     Bc?: string[]
     Bcs?: string[]
@@ -24,8 +31,37 @@ interface CommandOption {
   }
 }
 
+const legacyAdd = async () => {
+  await installVerdaccio()
+
+  const open = await openVerdaccio()
+  if (!open) return
+  const options = await fetchPackagesFromVerdaccio()
+  if (!options || options.length < 0)
+    throw Error('Não possuie pacotes disponiveis no Verdaccio')
+
+  if (!options) return
+
+  const bcs = await checkbox({
+    message: 'Selecione as packages',
+    choices: options,
+    required: true,
+  })
+
+  await changeCode({
+    filePath: '.npmrc',
+    modification: '\nregistry=http://localhost:4873/',
+    replaceRegex: /([^#]\s*)# registry=http:\/\/localhost:4873\//,
+  })
+  await changeBcsInLegacyFiles(bcs)
+  console.log({ bcs })
+  bcs.forEach(bc => removePackageFromYarnLock(bc))
+
+  disconnectFromVerdaccio()
+}
+
 export async function main({ command, args }: CommandOption) {
-  let option: 'create' | 'update' | 'delete'
+  let option: 'create' | 'update' | 'delete' | 'addLegacy'
 
   intro(`RD - Verdaccio CLI`)
 
@@ -36,15 +72,23 @@ export async function main({ command, args }: CommandOption) {
         { value: 'update', label: "Update de BC's" },
         { value: 'create', label: "Criar BC's" },
         { value: 'delete', label: "Deletar BC's" },
+        { value: 'addLegacy', label: 'Adicionar BC no legado' },
       ],
-    })) as 'delete' | 'update' | 'create'
+    })) as 'delete' | 'update' | 'create' | 'addLegacy'
+  }
+
+  if (!option) {
+    option = command
   }
 
   const filter = args.f || args.filter
 
   let bcs = args.Bc || args.Bcs
 
-  option = command
+  if (option === 'addLegacy') {
+    legacyAdd()
+    return
+  }
 
   const options = await retrieveAllBcOptions(filter)
 
@@ -68,6 +112,7 @@ export async function main({ command, args }: CommandOption) {
       case 'create':
         await createAndPublishPackages(bcs)
         break
+
       case 'delete':
         await deletePackages(bcs)
         break

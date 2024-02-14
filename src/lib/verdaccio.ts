@@ -27,22 +27,36 @@ export const installVerdaccio = async () => {
 }
 
 export const openVerdaccio = async () => {
-  log.info('Conectando com  Verdaccio...')
+  try {
+    log.info('Conectando com Verdaccio...')
 
-  verdaccioProcess = spawn(cliCommand)
+    verdaccioProcess = spawn(cliCommand)
 
-  verdaccioProcess.on('error', error => {
+    verdaccioProcess.on('error', error => {
+      log.error(`Error: ${error.message}`)
+      throw error
+    })
+
+    const data = await new Promise<boolean>((resolve, reject) => {
+      verdaccioProcess.stdout.on('data', () => {
+        resolve(true)
+      })
+
+      log.success('Conectado com Verdaccio com sucesso!')
+      log.step('')
+    })
+    verdaccioProcess.on('close', (code: number) => {
+      if (code !== 0 && code) {
+        log.error(`Processo do Verdaccio foi terminado com codigo ${code}`)
+        throw new Error(`Verdaccio process exited with code ${code}`)
+      }
+    })
+
+    return data
+  } catch (error) {
     log.error(`Error: ${error.message}`)
-    exit()
-  })
-
-  verdaccioProcess.on('close', code => {
-    if (code !== 0) {
-      log.error(`Processo do Verdaccio foi terminado com codigo ${code}`)
-      exit()
-    }
-    log.success('Conectado!')
-  })
+    throw error
+  }
 }
 
 export const disconnectFromVerdaccio = () => {
